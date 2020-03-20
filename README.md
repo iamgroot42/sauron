@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Install the given fork of the [robustness](http://github.com/madryLab/robustness/) package `pip install -e robustness`
+- Install [this](https://github.com/iamgroot42/robustness) fork of the robustness package `pip install -e robustness`
 - If you are going to run experiments for Imagenet, modify `IMAGENET_PATH` in `utils.py` accordingly
 - Download pretrained models and pre-computed statistics:
   `wget https://www.dropbox.com/s/rsxzw30fdmle2qu/data.tar.gz?dl=1 -O data.tar.gz`
