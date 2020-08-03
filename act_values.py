@@ -33,7 +33,7 @@ if __name__ == "__main__":
 	def get_reps(data_loader):
 		for (im, label) in tqdm(data_loader):
 			with ch.no_grad():
-				(_, rep), _ = model(im, with_latent=True)
+				(_, rep), _ = model(im.cuda(), with_latent=True)
 				all_reps.append(rep.cpu())
 
 	if train_loader:
