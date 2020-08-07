@@ -1,3 +1,9 @@
+# Dat aand model files
+cifar10/*
+data.tar.gz
+imagenet/*
+test/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
