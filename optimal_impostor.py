@@ -64,7 +64,7 @@ def find_impostors(model, delta_values, ds, images, mean, std,
 		targ_img = image.unsqueeze(0)
 		real = targ_img.repeat(n, 1, 1, 1)
 		image_.append(real)
-	real = ch.cat(image_, 0)
+	real = ch.cat(image_, 0).cuda()
 
 	# Get scaled senses
 	scaled_delta_values = utils.scaled_values(delta_values, mean, std, eps=0)
@@ -76,7 +76,7 @@ def find_impostors(model, delta_values, ds, images, mean, std,
 
 	# Get feature representation of current image
 	with ch.no_grad():
-		(_, image_rep), _  = model(real.cuda(), with_latent=True)
+		(_, image_rep), _  = model(real, with_latent=True)
 
 	# Construct delta vector and indices mask
 	delta_vec = ch.zeros_like(image_rep)
@@ -121,14 +121,14 @@ def find_impostors(model, delta_values, ds, images, mean, std,
 	if not delta_analysis:
 		delta_succeeded = None
 
-	return (real, impostors, image_labels, succeeded, None, delta_succeeded)
+	return (image_labels, succeeded, None, delta_succeeded)
 
 
 def parallel_impostor(model, delta_vec, im, indices_mask, verbose, eps,
 	iters, norm, custom_best, fake_relu, random_restarts):
 	# Get feature representation of current image
 	with ch.no_grad():
-		(target_logits, image_rep), _  = model(im.cuda(), with_latent=True, fake_relu=fake_relu)
+		(target_logits, image_rep), _  = model(im, with_latent=True, fake_relu=fake_relu)
 		target_logits = ch.argmax(target_logits, dim=1)
 
 	# Get target feature rep
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 	senses = constants.get_deltas(model_type, model_arch)
 	(mean, std) = constants.get_stats(model_type, model_arch)
 
-	_, test_loader = ds.make_loaders(batch_size=batch_size, workers=8, only_val=True, fixed_test_order=True)
+	_, test_loader = ds.make_loaders(batch_size=batch_size, workers=8, only_val=True, shuffle_val=False)
 
 	index_base, avg_successes = 0, 0
 	attack_rates = [0, 0, 0, 0]
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 	iterator = tqdm(test_loader)
 	for (image, _) in iterator:
 		picked_indices = list(range(index_base, index_base + len(image)))
-		(real, impostors, image_labels, succeeded, impostors_latent, delta_succeeded) = find_impostors(model, senses[:, picked_indices], ds,
+		(image_labels, succeeded, impostors_latent, delta_succeeded) = find_impostors(model, senses[:, picked_indices], ds,
 															image.cpu(), mean, std, n=n, verbose=False,
 															eps=eps, iters=iters, norm=norm,
 															custom_best=custom_best, fake_relu=fake_relu,
